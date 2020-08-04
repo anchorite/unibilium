@@ -4,7 +4,7 @@ pub struct UnibiTerm {
     term: *mut unibi_term,
 }
 
-pub struct UnibiTermIter<'a> {
+pub struct UnibiTermBoolIter<'a> {
     term: &'a UnibiTerm,
     item: unibi_boolean,
 }
@@ -16,8 +16,8 @@ impl UnibiTerm {
         }
     }
 
-    pub fn iter(&self) -> UnibiTermIter {
-        UnibiTermIter {
+    pub fn iter_bool(&self) -> UnibiTermBoolIter {
+        UnibiTermBoolIter {
             term: self,
             item: unibi_boolean(unibi_boolean::unibi_boolean_begin_.0 + 1),
         }
@@ -32,7 +32,7 @@ impl Drop for UnibiTerm {
     }
 }
 
-impl<'a> Iterator for UnibiTermIter<'a> {
+impl<'a> Iterator for UnibiTermBoolIter<'a> {
     type Item = (unibi_boolean, bool);
 
     fn next(&mut self) -> Option<Self::Item> {
