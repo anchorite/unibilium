@@ -1,4 +1,4 @@
-use unibilium_sys::{unibi_boolean, unibi_from_env, unibi_numeric, unibi_term};
+use unibilium_sys::{unibi_boolean, unibi_from_env, unibi_from_term, unibi_numeric, unibi_term};
 
 pub struct UnibiTerm {
     term: *mut unibi_term,
@@ -18,6 +18,12 @@ impl UnibiTerm {
     pub fn from_env() -> UnibiTerm {
         UnibiTerm {
             term: unsafe { unibi_from_env() },
+        }
+    }
+
+    pub fn from_term_name(name: &str) -> UnibiTerm {
+        UnibiTerm {
+            term: unsafe { unibi_from_term(name.as_ptr() as *const i8) },
         }
     }
 
