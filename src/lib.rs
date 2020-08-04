@@ -59,11 +59,8 @@ impl<'a> Iterator for UnibiTermBoolIter<'a> {
         }
 
         let res = unsafe { unibilium_sys::unibi_get_bool(self.term.term, self.item) };
-        let res = if res > 0 {
-            Some((self.item, true))
-        } else {
-            Some((self.item, false))
-        };
+        let res = res > 0;
+        let res = Some((self.item, res));
         self.item.0 += 1;
         res
     }
