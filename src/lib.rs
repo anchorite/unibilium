@@ -24,6 +24,14 @@ impl UnibiTerm {
     }
 }
 
+impl Drop for UnibiTerm {
+    fn drop(&mut self) {
+        unsafe {
+            unibilium_sys::unibi_destroy(self.term);
+        }
+    }
+}
+
 impl<'a> Iterator for UnibiTermIter<'a> {
     type Item = (unibi_boolean, bool);
 
