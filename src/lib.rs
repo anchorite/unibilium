@@ -1,4 +1,4 @@
-use unibilium_sys::{unibi_boolean, unibi_from_env, unibi_term};
+use unibilium_sys::{unibi_boolean, unibi_from_env, unibi_numeric, unibi_term};
 
 pub struct UnibiTerm {
     term: *mut unibi_term,
@@ -7,6 +7,11 @@ pub struct UnibiTerm {
 pub struct UnibiTermBoolIter<'a> {
     term: &'a UnibiTerm,
     item: unibi_boolean,
+}
+
+pub struct UnibiTermNumericIter<'a> {
+    term: &'a UnibiTerm,
+    item: unibi_numeric,
 }
 
 impl UnibiTerm {
@@ -20,6 +25,13 @@ impl UnibiTerm {
         UnibiTermBoolIter {
             term: self,
             item: unibi_boolean(unibi_boolean::unibi_boolean_begin_.0 + 1),
+        }
+    }
+
+    pub fn iter_numeric(&self) -> UnibiTermNumericIter {
+        UnibiTermNumericIter {
+            term: self,
+            item: unibi_numeric(unibi_numeric::unibi_numeric_begin_.0 + 1),
         }
     }
 }
@@ -46,6 +58,21 @@ impl<'a> Iterator for UnibiTermBoolIter<'a> {
         } else {
             Some((self.item, false))
         };
+        self.item.0 += 1;
+        res
+    }
+}
+
+impl<'a> Iterator for UnibiTermNumericIter<'a> {
+    type Item = (unibi_numeric, i32);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.item == unibi_numeric::unibi_numeric_end_ {
+            return None;
+        }
+
+        let res = unsafe { unibilium_sys::unibi_get_num(self.term.term, self.item) };
+        let res = Some((self.item, res));
         self.item.0 += 1;
         res
     }
