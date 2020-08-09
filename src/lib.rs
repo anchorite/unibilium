@@ -3,29 +3,29 @@ use unibilium_sys::{
     unibi_boolean, unibi_from_env, unibi_from_term, unibi_numeric, unibi_string, unibi_term,
 };
 
-pub struct UnibiTerm {
+pub struct Term {
     term: *mut unibi_term,
 }
 
-pub struct UnibiTermBoolIter<'a> {
-    term: &'a UnibiTerm,
+pub struct TermBoolIter<'a> {
+    term: &'a Term,
     item: unibi_boolean,
 }
 
-pub struct UnibiTermNumericIter<'a> {
-    term: &'a UnibiTerm,
+pub struct TermNumericIter<'a> {
+    term: &'a Term,
     item: unibi_numeric,
 }
 
-impl UnibiTerm {
-    pub fn from_env() -> UnibiTerm {
-        UnibiTerm {
+impl Term {
+    pub fn from_env() -> Term {
+        Term {
             term: unsafe { unibi_from_env() },
         }
     }
 
-    pub fn from_term_name(name: &str) -> UnibiTerm {
-        UnibiTerm {
+    pub fn from_term_name(name: &str) -> Term {
+        Term {
             term: unsafe { unibi_from_term(name.as_ptr() as *const i8) },
         }
     }
@@ -93,22 +93,22 @@ impl UnibiTerm {
         all
     }
 
-    pub fn iter_bool(&self) -> UnibiTermBoolIter {
-        UnibiTermBoolIter {
+    pub fn iter_bool(&self) -> TermBoolIter {
+        TermBoolIter {
             term: self,
             item: unibi_boolean(unibi_boolean::unibi_boolean_begin_.0 + 1),
         }
     }
 
-    pub fn iter_numeric(&self) -> UnibiTermNumericIter {
-        UnibiTermNumericIter {
+    pub fn iter_numeric(&self) -> TermNumericIter {
+        TermNumericIter {
             term: self,
             item: unibi_numeric(unibi_numeric::unibi_numeric_begin_.0 + 1),
         }
     }
 }
 
-impl Drop for UnibiTerm {
+impl Drop for Term {
     fn drop(&mut self) {
         unsafe {
             unibilium_sys::unibi_destroy(self.term);
@@ -116,7 +116,7 @@ impl Drop for UnibiTerm {
     }
 }
 
-impl<'a> Iterator for UnibiTermBoolIter<'a> {
+impl<'a> Iterator for TermBoolIter<'a> {
     type Item = (unibi_boolean, bool);
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -132,7 +132,7 @@ impl<'a> Iterator for UnibiTermBoolIter<'a> {
     }
 }
 
-impl<'a> Iterator for UnibiTermNumericIter<'a> {
+impl<'a> Iterator for TermNumericIter<'a> {
     type Item = (unibi_numeric, i32);
 
     fn next(&mut self) -> Option<Self::Item> {
