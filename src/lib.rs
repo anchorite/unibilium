@@ -1,4 +1,5 @@
 use std::ffi::CStr;
+use std::fmt;
 use unibilium_sys::{
     unibi_boolean, unibi_from_env, unibi_from_term, unibi_numeric, unibi_string, unibi_term,
 };
@@ -17,6 +18,38 @@ pub struct TermNumericIter<'a> {
     item: unibi_numeric,
 }
 
+pub struct Boolean<'a> {
+    boolean: unibi_boolean,
+    term: &'a Term,
+}
+
+impl<'a> Boolean<'a> {
+    fn from_unibi_bool(boolean: unibi_boolean, term: &'a Term) -> Self {
+        Boolean { boolean, term }
+    }
+
+    pub fn name(&self) -> &str {
+        // Returns static string if called with value between begin and end.
+        let name = unsafe { unibilium_sys::unibi_name_bool(self.boolean) };
+        if name.is_null() {
+            panic!("Invalid unibi_bool value: {}", self.boolean);
+        }
+        let name = unsafe { CStr::from_ptr(name) };
+        name.to_str().expect("Invalid UTF-8 string encountered")
+    }
+
+    pub fn supported(&self) -> bool {
+        let result = unsafe { unibilium_sys::unibi_get_bool(self.term.term, self.boolean) };
+        result > 0
+    }
+}
+
+impl<'a> fmt::Display for Boolean<'a> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}: {}", self.name(), self.supported())
+    }
+}
+
 impl Term {
     pub fn from_env() -> Term {
         Term {
@@ -30,16 +63,13 @@ impl Term {
         }
     }
 
-    pub fn booleans(&self) -> Vec<(unibi_boolean, bool)> {
+    pub fn booleans(&self) -> Vec<Boolean> {
         let mut all = vec![];
         let first = unibi_boolean::unibi_boolean_begin_.0 + 1;
         let end = unibi_boolean::unibi_boolean_end_.0;
         for current in first..end {
-            let b = unibi_boolean(current);
-            let value = unsafe { unibilium_sys::unibi_get_bool(self.term, b) };
-            let value = value > 0;
-            let value = (b, value);
-            all.push(value);
+            let b = Boolean::from_unibi_bool(unibi_boolean(current), self);
+            all.push(b);
         }
         all
     }
