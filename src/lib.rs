@@ -8,16 +8,6 @@ pub struct Term {
     term: *mut unibi_term,
 }
 
-pub struct TermBoolIter<'a> {
-    term: &'a Term,
-    item: unibi_boolean,
-}
-
-pub struct TermNumericIter<'a> {
-    term: &'a Term,
-    item: unibi_numeric,
-}
-
 pub struct Boolean<'a> {
     boolean: unibi_boolean,
     term: &'a Term,
@@ -225,20 +215,6 @@ impl Term {
         }
         all
     }
-
-    pub fn iter_bool(&self) -> TermBoolIter {
-        TermBoolIter {
-            term: self,
-            item: unibi_boolean(unibi_boolean::unibi_boolean_begin_.0 + 1),
-        }
-    }
-
-    pub fn iter_numeric(&self) -> TermNumericIter {
-        TermNumericIter {
-            term: self,
-            item: unibi_numeric(unibi_numeric::unibi_numeric_begin_.0 + 1),
-        }
-    }
 }
 
 impl Drop for Term {
@@ -246,36 +222,5 @@ impl Drop for Term {
         unsafe {
             unibilium_sys::unibi_destroy(self.term);
         }
-    }
-}
-
-impl<'a> Iterator for TermBoolIter<'a> {
-    type Item = (unibi_boolean, bool);
-
-    fn next(&mut self) -> Option<Self::Item> {
-        if self.item == unibi_boolean::unibi_boolean_end_ {
-            return None;
-        }
-
-        let res = unsafe { unibilium_sys::unibi_get_bool(self.term.term, self.item) };
-        let res = res > 0;
-        let res = Some((self.item, res));
-        self.item.0 += 1;
-        res
-    }
-}
-
-impl<'a> Iterator for TermNumericIter<'a> {
-    type Item = (unibi_numeric, i32);
-
-    fn next(&mut self) -> Option<Self::Item> {
-        if self.item == unibi_numeric::unibi_numeric_end_ {
-            return None;
-        }
-
-        let res = unsafe { unibilium_sys::unibi_get_num(self.term.term, self.item) };
-        let res = Some((self.item, res));
-        self.item.0 += 1;
-        res
     }
 }
