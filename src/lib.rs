@@ -50,6 +50,37 @@ impl<'a> fmt::Display for Boolean<'a> {
     }
 }
 
+pub struct Numeric<'a> {
+    term: &'a Term,
+    numeric: unibi_numeric,
+}
+
+impl<'a> Numeric<'a> {
+    fn from_unibi_numeric(numeric: unibi_numeric, term: &'a Term) -> Self {
+        Numeric { numeric, term }
+    }
+
+    pub fn name(&self) -> &str {
+        // Returns static string if called with value between begin and end.
+        let name = unsafe { unibilium_sys::unibi_name_num(self.numeric) };
+        if name.is_null() {
+            panic!("Invalid unibi_numeric value: {}", self.numeric);
+        }
+        let name = unsafe { CStr::from_ptr(name) };
+        name.to_str().expect("Invalid UTF-8 string encountered")
+    }
+
+    pub fn value(&self) -> i32 {
+        unsafe { unibilium_sys::unibi_get_num(self.term.term, self.numeric) }
+    }
+}
+
+impl<'a> fmt::Display for Numeric<'a> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}: {}", self.name(), self.value())
+    }
+}
+
 impl Term {
     pub fn from_env() -> Term {
         Term {
@@ -88,15 +119,13 @@ impl Term {
         all
     }
 
-    pub fn numerics(&self) -> Vec<(unibi_numeric, i32)> {
+    pub fn numerics(&self) -> Vec<Numeric> {
         let mut all = vec![];
         let first = unibi_numeric::unibi_numeric_begin_.0 + 1;
         let end = unibi_numeric::unibi_numeric_end_.0;
         for current in first..end {
-            let b = unibi_numeric(current);
-            let value = unsafe { unibilium_sys::unibi_get_num(self.term, b) };
-            let value = (b, value);
-            all.push(value);
+            let n = Numeric::from_unibi_numeric(unibi_numeric(current), self);
+            all.push(n);
         }
         all
     }
