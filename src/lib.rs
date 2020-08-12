@@ -103,6 +103,40 @@ impl<'a> fmt::Display for Numeric<'a> {
     }
 }
 
+pub struct ExtNumeric<'a> {
+    index: u64,
+    term: &'a Term,
+}
+
+impl<'a> ExtNumeric<'a> {
+    fn from_index(index: u64, term: &'a Term) -> Self {
+        ExtNumeric { index, term }
+    }
+
+    pub fn name(&self) -> &str {
+        // Returns static string if called with value between 0 and count
+        let name = unsafe { unibilium_sys::unibi_get_ext_num_name(self.term.term, self.index) };
+        if name.is_null() {
+            panic!(
+                "Invalid index for extended numeric capability: {}",
+                self.index
+            );
+        }
+        let name = unsafe { CStr::from_ptr(name) };
+        name.to_str().expect("Invalid UTF-8 string encountered")
+    }
+
+    pub fn value(&self) -> i32 {
+        unsafe { unibilium_sys::unibi_get_ext_num(self.term.term, self.index) }
+    }
+}
+
+impl<'a> fmt::Display for ExtNumeric<'a> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}: {}", self.name(), self.value())
+    }
+}
+
 pub struct String<'a> {
     term: &'a Term,
     string: unibi_string,
@@ -201,6 +235,16 @@ impl Term {
         for current in first..end {
             let n = Numeric::from_unibi_numeric(unibi_numeric(current), self);
             all.push(n);
+        }
+        all
+    }
+
+    pub fn ext_numerics(&self) -> Vec<ExtNumeric> {
+        let mut all = vec![];
+        let end = unsafe { unibilium_sys::unibi_count_ext_num(self.term) };
+        for index in 0..end {
+            let b = ExtNumeric::from_index(index, self);
+            all.push(b);
         }
         all
     }
