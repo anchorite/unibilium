@@ -81,6 +81,63 @@ impl<'a> fmt::Display for Numeric<'a> {
     }
 }
 
+pub struct String<'a> {
+    term: &'a Term,
+    string: unibi_string,
+}
+
+impl<'a> String<'a> {
+    fn from_unibi_string(string: unibi_string, term: &'a Term) -> Self {
+        String { string, term }
+    }
+
+    pub fn name(&self) -> &str {
+        // Returns static string if called with value between begin and end.
+        let name = unsafe { unibilium_sys::unibi_name_str(self.string) };
+        if name.is_null() {
+            panic!("Invalid unibi_string value: {}", self.string);
+        }
+        let name = unsafe { CStr::from_ptr(name) };
+        name.to_str().expect("Invalid UTF-8 string encountered")
+    }
+
+    pub fn value(&self) -> Option<&str> {
+        let value = unsafe { unibilium_sys::unibi_get_str(self.term.term, self.string) };
+        if value.is_null() {
+            return None;
+        }
+        let value = unsafe { CStr::from_ptr(value) };
+        Some(value.to_str().expect("Invalid UTF-8 string encountered"))
+    }
+
+    /// Returns escaped std::string::String representing the value of the capability. Escaping is
+    /// done according to the rules by std::ascii::escape_default, with the exception that
+    /// escape(0x1b) is represented as '^['.
+    pub fn escaped_value(&self) -> Option<std::string::String> {
+        self.value().map(|value| {
+            std::string::String::from_utf8(
+                value
+                    .as_bytes()
+                    .iter()
+                    .map(|c| std::ascii::escape_default(*c))
+                    .flatten()
+                    .collect(),
+            )
+            .expect("Invalid UTF-8 string encountered")
+            .replace("\\x1b", "^[")
+        })
+    }
+}
+
+impl<'a> fmt::Display for String<'a> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self.escaped_value() {
+            None => write!(f, "{}: NULL", self.name()),
+            Some(value) => write!(f, "{}: {}", self.name(), value),
+        }
+    }
+}
+
 impl Term {
     pub fn from_env() -> Term {
         Term {
@@ -105,7 +162,7 @@ impl Term {
         all
     }
 
-    pub fn ext_booleans(&self) -> Vec<(Option<String>, bool)> {
+    pub fn ext_booleans(&self) -> Vec<(Option<std::string::String>, bool)> {
         let mut all = vec![];
         let end = unsafe { unibilium_sys::unibi_count_ext_bool(self.term) };
         for current in 0..end {
@@ -130,7 +187,7 @@ impl Term {
         all
     }
 
-    fn c_char_to_string(&self, ptr: *const i8) -> Option<String> {
+    fn c_char_to_string(&self, ptr: *const i8) -> Option<std::string::String> {
         if ptr.is_null() {
             None
         } else {
@@ -140,14 +197,13 @@ impl Term {
         }
     }
 
-    pub fn strings(&self) -> Vec<(unibi_string, Option<String>)> {
+    pub fn strings(&self) -> Vec<String> {
         let mut all = vec![];
         let first = unibi_string::unibi_string_begin_.0 + 1;
         let end = unibi_string::unibi_string_end_.0;
         for current in first..end {
-            let s = unibi_string(current);
-            let value = unsafe { unibilium_sys::unibi_get_str(self.term, s) };
-            all.push((s, self.c_char_to_string(value)));
+            let s = String::from_unibi_string(unibi_string(current), self);
+            all.push(s);
         }
         all
     }
