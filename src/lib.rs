@@ -50,6 +50,38 @@ impl<'a> fmt::Display for Boolean<'a> {
     }
 }
 
+pub struct ExtBoolean<'a> {
+    index: u64,
+    term: &'a Term,
+}
+
+impl<'a> ExtBoolean<'a> {
+    fn from_index(index: u64, term: &'a Term) -> Self {
+        ExtBoolean { index, term }
+    }
+
+    pub fn name(&self) -> &str {
+        // Returns static string if called with value between 0 and count
+        let name = unsafe { unibilium_sys::unibi_get_ext_bool_name(self.term.term, self.index) };
+        if name.is_null() {
+            panic!("Invalid index for extended bool capability: {}", self.index);
+        }
+        let name = unsafe { CStr::from_ptr(name) };
+        name.to_str().expect("Invalid UTF-8 string encountered")
+    }
+
+    pub fn supported(&self) -> bool {
+        let result = unsafe { unibilium_sys::unibi_get_ext_bool(self.term.term, self.index) };
+        result > 0
+    }
+}
+
+impl<'a> fmt::Display for ExtBoolean<'a> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}: {}", self.name(), self.supported())
+    }
+}
+
 pub struct Numeric<'a> {
     term: &'a Term,
     numeric: unibi_numeric,
@@ -162,16 +194,12 @@ impl Term {
         all
     }
 
-    pub fn ext_booleans(&self) -> Vec<(Option<std::string::String>, bool)> {
+    pub fn ext_booleans(&self) -> Vec<ExtBoolean> {
         let mut all = vec![];
         let end = unsafe { unibilium_sys::unibi_count_ext_bool(self.term) };
-        for current in 0..end {
-            let key = unsafe { unibilium_sys::unibi_get_ext_bool_name(self.term, current) };
-            let key = self.c_char_to_string(key);
-            let value = unsafe { unibilium_sys::unibi_get_ext_bool(self.term, current) };
-            let value = value > 0;
-            let value = (key, value);
-            all.push(value);
+        for index in 0..end {
+            let b = ExtBoolean::from_index(index, self);
+            all.push(b);
         }
         all
     }
@@ -185,16 +213,6 @@ impl Term {
             all.push(n);
         }
         all
-    }
-
-    fn c_char_to_string(&self, ptr: *const i8) -> Option<std::string::String> {
-        if ptr.is_null() {
-            None
-        } else {
-            let value = unsafe { CStr::from_ptr(ptr) };
-            let value = value.to_string_lossy().into_owned();
-            Some(value)
-        }
     }
 
     pub fn strings(&self) -> Vec<String> {
