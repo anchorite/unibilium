@@ -1,6 +1,7 @@
 use crate::boolean::{Boolean, ExtBoolean};
 use crate::numeric::{ExtNumeric, Numeric};
 use crate::string::{ExtString, String};
+use std::ffi::CString;
 use unibilium_sys::{
     unibi_boolean, unibi_from_env, unibi_from_term, unibi_numeric, unibi_string, unibi_term,
 };
@@ -10,15 +11,22 @@ pub struct Term {
 }
 
 impl Term {
-    pub fn from_env() -> Term {
-        Term {
-            term: unsafe { unibi_from_env() },
+    pub fn from_env() -> Option<Term> {
+        let term = unsafe { unibi_from_env() };
+        if term.is_null() {
+            None
+        } else {
+            Some(Term { term })
         }
     }
 
-    pub fn from_term_name(name: &str) -> Term {
-        Term {
-            term: unsafe { unibi_from_term(name.as_ptr() as *const i8) },
+    pub fn from_term_name(name: &str) -> Option<Term> {
+        let name = CString::new(name).ok()?;
+        let term = unsafe { unibi_from_term(name.as_ptr()) };
+        if term.is_null() {
+            None
+        } else {
+            Some(Term { term })
         }
     }
 
