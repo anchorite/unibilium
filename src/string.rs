@@ -3,6 +3,7 @@ use std::ffi::CStr;
 use std::fmt;
 use unibilium_sys::unibi_string;
 
+/// Represents string terminal capabilities.
 #[derive(Debug)]
 pub struct String<'a> {
     term: &'a Term,
@@ -10,10 +11,13 @@ pub struct String<'a> {
 }
 
 impl<'a> String<'a> {
+    /// Creates a string capability from its lower level representation. Use Term::booleans
+    /// instead, this is intended for internal use.
     pub(crate) fn from_unibi_string_unchecked(string: unibi_string, term: &'a Term) -> Self {
         String { string, term }
     }
 
+    /// Returns the name of the capability.
     pub fn name(&self) -> &str {
         // Returns static string if called with value between begin and end.
         let name = unsafe { unibilium_sys::unibi_name_str(self.string) };
@@ -24,6 +28,7 @@ impl<'a> String<'a> {
         name.to_str().expect("Invalid UTF-8 string encountered")
     }
 
+    /// Returns the value of the capability.
     pub fn value(&self) -> Option<&str> {
         let value = unsafe { unibilium_sys::unibi_get_str(self.term.unibi_term(), self.string) };
         if value.is_null() {
@@ -58,10 +63,13 @@ pub struct ExtString<'a> {
 }
 
 impl<'a> ExtString<'a> {
+    /// Creates a extended string capability from its lower level representation. Use
+    /// Term::ext_booleans instead, this is intended for internal use.
     pub(crate) fn from_index_unchecked(index: u64, term: &'a Term) -> Self {
         ExtString { index, term }
     }
 
+    /// Returns the name of the capability.
     pub fn name(&self) -> &str {
         // Returns static string if called with value between 0 and count
         let name =
@@ -76,6 +84,7 @@ impl<'a> ExtString<'a> {
         name.to_str().expect("Invalid UTF-8 string encountered")
     }
 
+    /// Returns the value of the capability.
     pub fn value(&self) -> Option<&str> {
         let value = unsafe { unibilium_sys::unibi_get_ext_str(self.term.unibi_term(), self.index) };
         if value.is_null() {
