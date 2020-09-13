@@ -35,7 +35,7 @@ impl Term {
         let first = unibi_boolean::unibi_boolean_begin_.0 + 1;
         let end = unibi_boolean::unibi_boolean_end_.0;
         for current in first..end {
-            let b = Boolean::from_unibi_bool(unibi_boolean(current), self);
+            let b = Boolean::from_unibi_bool_unchecked(unibi_boolean(current), self);
             all.push(b);
         }
         all
@@ -45,7 +45,7 @@ impl Term {
         let mut all = vec![];
         let end = unsafe { unibilium_sys::unibi_count_ext_bool(self.term) };
         for index in 0..end {
-            let b = ExtBoolean::from_index(index, self);
+            let b = ExtBoolean::from_index_unchecked(index, self);
             all.push(b);
         }
         all
@@ -56,7 +56,7 @@ impl Term {
         let first = unibi_numeric::unibi_numeric_begin_.0 + 1;
         let end = unibi_numeric::unibi_numeric_end_.0;
         for current in first..end {
-            let n = Numeric::from_unibi_numeric(unibi_numeric(current), self);
+            let n = Numeric::from_unibi_numeric_unchecked(unibi_numeric(current), self);
             all.push(n);
         }
         all
@@ -66,7 +66,7 @@ impl Term {
         let mut all = vec![];
         let end = unsafe { unibilium_sys::unibi_count_ext_num(self.term) };
         for index in 0..end {
-            let b = ExtNumeric::from_index(index, self);
+            let b = ExtNumeric::from_index_unchecked(index, self);
             all.push(b);
         }
         all
@@ -77,7 +77,7 @@ impl Term {
         let first = unibi_string::unibi_string_begin_.0 + 1;
         let end = unibi_string::unibi_string_end_.0;
         for current in first..end {
-            let s = String::from_unibi_string(unibi_string(current), self);
+            let s = String::from_unibi_string_unchecked(unibi_string(current), self);
             all.push(s);
         }
         all
@@ -87,7 +87,7 @@ impl Term {
         let mut all = vec![];
         let end = unsafe { unibilium_sys::unibi_count_ext_str(self.term) };
         for index in 0..end {
-            let b = ExtString::from_index(index, self);
+            let b = ExtString::from_index_unchecked(index, self);
             all.push(b);
         }
         all

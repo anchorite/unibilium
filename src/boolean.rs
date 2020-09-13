@@ -9,7 +9,7 @@ pub struct Boolean<'a> {
 }
 
 impl<'a> Boolean<'a> {
-    pub(crate) fn from_unibi_bool(boolean: unibi_boolean, term: &'a Term) -> Self {
+    pub(crate) fn from_unibi_bool_unchecked(boolean: unibi_boolean, term: &'a Term) -> Self {
         Boolean { boolean, term }
     }
 
@@ -41,7 +41,7 @@ pub struct ExtBoolean<'a> {
 }
 
 impl<'a> ExtBoolean<'a> {
-    pub(crate) fn from_index(index: u64, term: &'a Term) -> Self {
+    pub(crate) fn from_index_unchecked(index: u64, term: &'a Term) -> Self {
         ExtBoolean { index, term }
     }
 

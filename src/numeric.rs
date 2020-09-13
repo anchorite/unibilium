@@ -9,7 +9,7 @@ pub struct Numeric<'a> {
 }
 
 impl<'a> Numeric<'a> {
-    pub(crate) fn from_unibi_numeric(numeric: unibi_numeric, term: &'a Term) -> Self {
+    pub(crate) fn from_unibi_numeric_unchecked(numeric: unibi_numeric, term: &'a Term) -> Self {
         Numeric { numeric, term }
     }
 
@@ -40,7 +40,7 @@ pub struct ExtNumeric<'a> {
 }
 
 impl<'a> ExtNumeric<'a> {
-    pub(crate) fn from_index(index: u64, term: &'a Term) -> Self {
+    pub(crate) fn from_index_unchecked(index: u64, term: &'a Term) -> Self {
         ExtNumeric { index, term }
     }
 

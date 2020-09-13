@@ -9,7 +9,7 @@ pub struct String<'a> {
 }
 
 impl<'a> String<'a> {
-    pub(crate) fn from_unibi_string(string: unibi_string, term: &'a Term) -> Self {
+    pub(crate) fn from_unibi_string_unchecked(string: unibi_string, term: &'a Term) -> Self {
         String { string, term }
     }
 
@@ -49,13 +49,14 @@ impl<'a> fmt::Display for String<'a> {
     }
 }
 
+/// Represents extended string terminal capabilities.
 pub struct ExtString<'a> {
     index: u64,
     term: &'a Term,
 }
 
 impl<'a> ExtString<'a> {
-    pub(crate) fn from_index(index: u64, term: &'a Term) -> Self {
+    pub(crate) fn from_index_unchecked(index: u64, term: &'a Term) -> Self {
         ExtString { index, term }
     }
 
