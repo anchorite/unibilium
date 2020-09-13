@@ -3,6 +3,7 @@ use std::ffi::CStr;
 use std::fmt;
 use unibilium_sys::unibi_string;
 
+#[derive(Debug)]
 pub struct String<'a> {
     term: &'a Term,
     string: unibi_string,
@@ -50,6 +51,7 @@ impl<'a> fmt::Display for String<'a> {
 }
 
 /// Represents extended string terminal capabilities.
+#[derive(Debug)]
 pub struct ExtString<'a> {
     index: u64,
     term: &'a Term,

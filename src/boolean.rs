@@ -3,6 +3,7 @@ use std::ffi::CStr;
 use std::fmt;
 use unibilium_sys::unibi_boolean;
 
+#[derive(Debug)]
 pub struct Boolean<'a> {
     boolean: unibi_boolean,
     term: &'a Term,
@@ -35,6 +36,7 @@ impl<'a> fmt::Display for Boolean<'a> {
     }
 }
 
+#[derive(Debug)]
 pub struct ExtBoolean<'a> {
     index: u64,
     term: &'a Term,

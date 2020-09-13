@@ -3,6 +3,7 @@ use std::ffi::CStr;
 use std::fmt;
 use unibilium_sys::unibi_numeric;
 
+#[derive(Debug)]
 pub struct Numeric<'a> {
     term: &'a Term,
     numeric: unibi_numeric,
@@ -34,6 +35,7 @@ impl<'a> fmt::Display for Numeric<'a> {
     }
 }
 
+#[derive(Debug)]
 pub struct ExtNumeric<'a> {
     index: u64,
     term: &'a Term,

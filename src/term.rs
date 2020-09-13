@@ -6,6 +6,7 @@ use unibilium_sys::{
     unibi_boolean, unibi_from_env, unibi_from_term, unibi_numeric, unibi_string, unibi_term,
 };
 
+#[derive(Debug, Hash, Eq, PartialEq)]
 pub struct Term {
     term: *mut unibi_term,
 }
