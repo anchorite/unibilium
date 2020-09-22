@@ -1,4 +1,5 @@
 pub mod boolean;
+pub mod error;
 pub mod numeric;
 pub mod string;
 pub mod term;

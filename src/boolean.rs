@@ -25,14 +25,18 @@ impl<'a> Boolean<'a> {
     ///
     /// # Examples
     ///
-    /// TODO: Fix example when from_env switches to Result.
-    ///
     /// ```
+    /// # use std::error::Error;
+    /// #
+    /// # fn main() -> Result<(), Box<dyn Error>> {
     /// use unibilium::term::Term;
     ///
-    /// let term = Term::from_env().unwrap();
+    /// let term = Term::from_env()?;
     /// let bool_caps = term.booleans();
     /// println!("A boolean capability name: {}", bool_caps.first().unwrap().name());
+    /// #
+    /// #    Ok(())
+    /// # }
     /// ```
     ///
     /// # Panics

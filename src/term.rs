@@ -1,6 +1,8 @@
 use crate::boolean::{Boolean, ExtBoolean};
+use crate::error::TermError;
 use crate::numeric::{ExtNumeric, Numeric};
 use crate::string::{ExtString, String};
+use std::error::Error;
 use std::ffi::CString;
 use unibilium_sys::{
     unibi_boolean, unibi_from_env, unibi_from_term, unibi_numeric, unibi_string, unibi_term,
@@ -19,18 +21,28 @@ impl Term {
     /// # Examples
     ///
     /// ```
+    /// # use std::error::Error;
+    /// #
+    /// # fn main() -> Result<(), Box<dyn Error>> {
     /// use unibilium::Term;
     ///
-    /// let term = Term::from_env().expect("Fails to create from TERM variable");
+    /// let term = Term::from_env()?;
+    /// #
+    /// #     Ok(())
+    /// # }
     /// ```
     ///
-    /// TODO: return Result with crate specific Error
-    pub fn from_env() -> Option<Term> {
+    /// # Errors
+    ///
+    /// Returns error if:
+    /// * TERM contains terminal without present termcap file
+    /// * TERM contains non-UTF8 string
+    pub fn from_env() -> Result<Term, Box<dyn Error>> {
         let term = unsafe { unibi_from_env() };
         if term.is_null() {
-            None
+            Err(Box::new(TermError::from_term_var()))
         } else {
-            Some(Term { term })
+            Ok(Term { term })
         }
     }
 
@@ -38,25 +50,51 @@ impl Term {
     ///
     /// # Examples
     ///
+    /// Succeeds for well known terminals.
+    ///
     /// ```
+    /// # use std::error::Error;
+    /// #
+    /// # fn main() -> Result<(), Box<dyn Error>> {
     /// use unibilium::Term;
     /// let term_name = "vt100";
     ///
-    /// let term = Term::from_term_name(term_name)
-    ///     .unwrap_or_else(|| panic!("Failed to find terminfo for '{}'", term_name));
+    /// let term = Term::from_term_name(term_name)?;
+    /// #
+    /// #     Ok(())
+    /// # }
+    /// ```
+    ///
+    /// Returns error for unknown terminals.
+    ///
+    /// ```
+    /// # use std::error::Error;
+    /// #
+    /// # fn main() -> Result<(), Box<dyn Error>> {
+    /// use unibilium::Term;
+    /// let term_name = "blahblah2234";
+    ///
+    /// assert!(Term::from_term_name(term_name).is_err());
+    /// #
+    /// #     Ok(())
+    /// # }
     /// ```
     ///
     /// # Errors
     ///
-    /// It returns `None` if name contains a null character or there is no terminfo file
-    /// corresponding to a terminal with provided name.
-    pub fn from_term_name(name: &str) -> Option<Term> {
-        let name = CString::new(name).ok()?;
-        let term = unsafe { unibi_from_term(name.as_ptr()) };
+    /// Returns error if:
+    /// * name presents terminal without present termcap file
+    /// * name presents non-UTF8 string
+    pub fn from_term_name(name: &str) -> Result<Term, Box<dyn Error>> {
+        let cname = match CString::new(name) {
+            Ok(cname) => cname,
+            Err(_) => return Err(Box::new(TermError::from_name(name))),
+        };
+        let term = unsafe { unibi_from_term(cname.as_ptr()) };
         if term.is_null() {
-            None
+            Err(Box::new(TermError::from_name(name)))
         } else {
-            Some(Term { term })
+            Ok(Term { term })
         }
     }
 
@@ -67,14 +105,19 @@ impl Term {
     /// Printing their values
     ///
     /// ```
+    /// # use std::error::Error;
+    /// #
+    /// # fn main() -> Result<(), Box<dyn Error>> {
     /// use unibilium::Term;
     /// let term_name = "vt100";
     ///
-    /// let term = Term::from_term_name(term_name)
-    ///     .unwrap_or_else(|| panic!("Failed to find terminfo for '{}'", term_name));
+    /// let term = Term::from_term_name(term_name)?;
     /// for b in term.booleans() {
     ///     println!("{}", b);
     /// }
+    /// #
+    /// #    Ok(())
+    /// # }
     /// ```
     pub fn booleans(&self) -> Vec<Boolean> {
         let mut all = vec![];
@@ -94,14 +137,19 @@ impl Term {
     /// Printing their values
     ///
     /// ```
+    /// # use std::error::Error;
+    /// #
+    /// # fn main() -> Result<(), Box<dyn Error>> {
     /// use unibilium::Term;
     /// let term_name = "vt100";
     ///
-    /// let term = Term::from_term_name(term_name)
-    ///     .unwrap_or_else(|| panic!("Failed to find terminfo for '{}'", term_name));
+    /// let term = Term::from_term_name(term_name)?;
     /// for b in term.ext_booleans() {
     ///     println!("{}", b);
     /// }
+    /// #
+    /// #    Ok(())
+    /// # }
     /// ```
     pub fn ext_booleans(&self) -> Vec<ExtBoolean> {
         let mut all = vec![];
@@ -120,14 +168,19 @@ impl Term {
     /// Printing their values
     ///
     /// ```
+    /// # use std::error::Error;
+    /// #
+    /// # fn main() -> Result<(), Box<dyn Error>> {
     /// use unibilium::Term;
     /// let term_name = "vt100";
     ///
-    /// let term = Term::from_term_name(term_name)
-    ///     .unwrap_or_else(|| panic!("Failed to find terminfo for '{}'", term_name));
+    /// let term = Term::from_term_name(term_name)?;
     /// for b in term.numerics() {
     ///     println!("{}", b);
     /// }
+    /// #
+    /// #    Ok(())
+    /// # }
     /// ```
     pub fn numerics(&self) -> Vec<Numeric> {
         let mut all = vec![];
@@ -147,14 +200,19 @@ impl Term {
     /// Printing their values
     ///
     /// ```
+    /// # use std::error::Error;
+    /// #
+    /// # fn main() -> Result<(), Box<dyn Error>> {
     /// use unibilium::Term;
     /// let term_name = "vt100";
     ///
-    /// let term = Term::from_term_name(term_name)
-    ///     .unwrap_or_else(|| panic!("Failed to find terminfo for '{}'", term_name));
+    /// let term = Term::from_term_name(term_name)?;
     /// for b in term.ext_numerics() {
     ///     println!("{}", b);
     /// }
+    /// #
+    /// #    Ok(())
+    /// # }
     /// ```
     pub fn ext_numerics(&self) -> Vec<ExtNumeric> {
         let mut all = vec![];
@@ -173,14 +231,19 @@ impl Term {
     /// Printing their values
     ///
     /// ```
+    /// # use std::error::Error;
+    /// #
+    /// # fn main() -> Result<(), Box<dyn Error>> {
     /// use unibilium::Term;
     /// let term_name = "vt100";
     ///
-    /// let term = Term::from_term_name(term_name)
-    ///     .unwrap_or_else(|| panic!("Failed to find terminfo for '{}'", term_name));
+    /// let term = Term::from_term_name(term_name)?;
     /// for b in term.strings() {
     ///     println!("{}", b);
     /// }
+    /// #
+    /// #    Ok(())
+    /// # }
     /// ```
     pub fn strings(&self) -> Vec<String> {
         let mut all = vec![];
@@ -200,14 +263,19 @@ impl Term {
     /// Printing their values
     ///
     /// ```
+    /// # use std::error::Error;
+    /// #
+    /// # fn main() -> Result<(), Box<dyn Error>> {
     /// use unibilium::Term;
     /// let term_name = "vt100";
     ///
-    /// let term = Term::from_term_name(term_name)
-    ///     .unwrap_or_else(|| panic!("Failed to find terminfo for '{}'", term_name));
+    /// let term = Term::from_term_name(term_name)?;
     /// for b in term.ext_strings() {
     ///     println!("{}", b);
     /// }
+    /// #
+    /// #    Ok(())
+    /// # }
     /// ```
     pub fn ext_strings(&self) -> Vec<ExtString> {
         let mut all = vec![];
