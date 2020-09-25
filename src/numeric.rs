@@ -26,7 +26,7 @@ impl<'a> Numeric<'a> {
     ///
     /// # Panics
     ///
-    /// If it encounters invalid UTF-8 characters it will panic.
+    /// Panics if it internally encounters invalid UTF-8 characters.
     pub fn name(&self) -> &str {
         // Returns static string if called with value between begin and end.
         let name = unsafe { unibilium_sys::unibi_name_num(self.numeric) };
@@ -72,7 +72,7 @@ impl<'a> ExtNumeric<'a> {
     ///
     /// # Panics
     ///
-    /// If it encounters an invalid UTF-8 character.
+    /// Panics if it internally encounters invalid UTF-8 characters.
     pub fn name(&self) -> &str {
         // Returns static string if called with value between 0 and count
         let name =
