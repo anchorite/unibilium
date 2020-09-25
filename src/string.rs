@@ -18,6 +18,10 @@ impl<'a> String<'a> {
     }
 
     /// Returns the name of the capability.
+    ///
+    /// # Panics
+    ///
+    /// Panics if it internally encounters invalid UTF-8 characters.
     pub fn name(&self) -> &str {
         // Returns static string if called with value between begin and end.
         let name = unsafe { unibilium_sys::unibi_name_str(self.string) };
@@ -29,6 +33,10 @@ impl<'a> String<'a> {
     }
 
     /// Returns the value of the capability.
+    ///
+    /// # Panics
+    ///
+    /// Panics if it internally encounters invalid UTF-8 characters.
     pub fn value(&self) -> Option<&str> {
         let value = unsafe { unibilium_sys::unibi_get_str(self.term.unibi_term(), self.string) };
         if value.is_null() {
@@ -70,6 +78,10 @@ impl<'a> ExtString<'a> {
     }
 
     /// Returns the name of the capability.
+    ///
+    /// # Panics
+    ///
+    /// Panics if it internally encounters invalid UTF-8 characters.
     pub fn name(&self) -> &str {
         // Returns static string if called with value between 0 and count
         let name =
@@ -85,6 +97,10 @@ impl<'a> ExtString<'a> {
     }
 
     /// Returns the value of the capability.
+    ///
+    /// # Panics
+    ///
+    /// Panics if it internally encounters invalid UTF-8 characters.
     pub fn value(&self) -> Option<&str> {
         let value = unsafe { unibilium_sys::unibi_get_ext_str(self.term.unibi_term(), self.index) };
         if value.is_null() {
