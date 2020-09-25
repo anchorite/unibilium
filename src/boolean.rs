@@ -23,22 +23,6 @@ impl<'a> Boolean<'a> {
 
     /// Returns name of the capability.
     ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use std::error::Error;
-    /// #
-    /// # fn main() -> Result<(), Box<dyn Error>> {
-    /// use unibilium::term::Term;
-    ///
-    /// let term = Term::from_env()?;
-    /// let bool_caps = term.booleans();
-    /// println!("A boolean capability name: {}", bool_caps.first().unwrap().name());
-    /// #
-    /// #    Ok(())
-    /// # }
-    /// ```
-    ///
     /// # Panics
     ///
     /// If it encounters invalid UTF-8 characters it will panic.
